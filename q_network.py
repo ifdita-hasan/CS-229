@@ -70,6 +70,7 @@ class DQLAgent:
         self.eps_end = eps_end
         self.eps_decay = eps_decay
         self.loss_fn = nn.MSELoss()
+        self.tau = 0.001
 
         # Define the two Q-networks to be used: 
         self.q_network = Q_network(state_size, action_size, hidden_size)
@@ -133,11 +134,17 @@ class DQLAgent:
                                                                            
         target_q_values = rewards + (self.gamma * next_q_values * (1 - end_state)) # tensor will have shape (batch_size, 1)
 
-        # Compute the loss and update the Q-network
+        # Compute the loss and update the q_network (NOT the target_q_network)
         loss = self.loss_fn(current_q_values, target_q_values.detach())
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+        self.target_q_network.load_state_dict(self.q_network.state_dict())
+        
+        # update target_q_network parameters 
+        for target_param, param in zip(self.target_q_network.parameters(), self.q_network.parameters()):
+            target_param.data.copy_(self.tau * param + (1 - self.tau) * target_param)
+
 
     def update_epsilon(self, episode, min_epsilon):
         self.epsilon = max(min_epsilon, self.epsilon * (1 - episode / 200))
