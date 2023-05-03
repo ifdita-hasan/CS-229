@@ -105,16 +105,10 @@ class DQLAgent:
         return action
 
 
-    def train(self, memory, batch_size):
+    def train(self, batch):
         '''
         Train the Q_network using vanilla DQL algorithm
         '''
-        # need at least batch_size of tuples 
-        if len(memory) < batch_size:
-            return
-        
-        # Sample a batch of transitions from memory
-        batch = memory.sample(batch_size)
         states, actions, rewards, next_states, end_state = zip(*batch)
 
         # vertically stack the components so that each tensor has shape (batch_size, _) where _ could be state_dim, action_dim, or 1 (for rewards)

@@ -55,19 +55,24 @@ action_size = ...
 hidden_size = ...
 learning_rate = ...
 gamma = ...
-epsilon = ...
-buffer_size = ...
+epsilon_start = ...
+epsilon_end = ... 
+epsilon_decay = ... 
+buffer_size = ...   # maximium size of replay buffer
+batch_size = ...    # size of each minibach 
 min_epsilon = 0.01 
-
-# Create an instance of the DQNAgent class
-agent = DQLAgent(state_size, action_size, hidden_size, learning_rate, gamma, epsilon)
-
-# Create an instance of the ReplayBuffer class
-memory = ReplayBuffer(buffer_size)
+seed = ...
 
 # Set the maximum number of episodes and maximum number of steps per episode
 max_episodes = ...
 max_steps = ...
+
+
+# Create an instance of the DQNAgent class
+agent = DQLAgent(state_size, action_size, hidden_size, batch_size, learning_rate, gamma, epsilon_start, epsilon_end, epsilon_decay)
+
+# Create an instance of the ReplayBuffer class
+memory = ReplayBuffer(buffer_size, batch_size, seed)
 
 # Train the agent
 for episode in range(max_episodes):
@@ -76,16 +81,19 @@ for episode in range(max_episodes):
 
     for step in range(max_steps):
         # Select an action using the DQNAgent
-        action = agent.select_action(state)
+        action = agent.act(state)
 
         # Execute the action and observe the next state, reward, and done flag
-        next_state, reward, done = ...
+        next_state, reward, end_state = ...
 
         # Add the experience tuple to the replay buffer
-        memory.add(state, action, reward, next_state, done)
+        memory.add(state, action, reward, next_state, end_state)
 
         # Sample a batch of experience tuples from the replay buffer
-        batch = memory.sample(buffer_size)
+        if len(memory) < batch_size: 
+            continue
+        
+        batch = memory.sample(batch_size)
 
         # Train the Q-network using the sampled batch of experience tuples
         agent.train(batch)
@@ -93,7 +101,7 @@ for episode in range(max_episodes):
         # Update the exploration parameter epsilon
         agent.update_epsilon(episode, min_epsilon)
 
-        if done:
+        if end_state:
             break
 
         # Set the state for the next step
