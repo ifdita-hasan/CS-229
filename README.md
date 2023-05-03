@@ -1,6 +1,2 @@
 # Lords of Waterdeep - RL Model
-CS 229 Final Project
-
-David is testing a push request
-
-Now i'm committing again
+Reinforcement Learning model that plays the board game Lords of Waterdeep. Part of CS 229 (Spring 2023) Final Project.
