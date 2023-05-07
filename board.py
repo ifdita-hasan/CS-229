@@ -24,7 +24,7 @@ class BoardState():
     def clearBuildings(self):
         '''Clears all buildings to their unoccupied states.'''
         for building in self.buildingStates:
-            self.buildingStates[building] = False
+            self.buildingStates[building] = None
     
     def drawQuest(self) -> Quest:
         '''
@@ -42,6 +42,11 @@ class BoardState():
         questStackCopy = self.questStack.copy()
         for i in range(len(self.questStack)):
             print(i+1, questStackCopy.pop())
+
+    def occupyBuilding(self, building: str, playerName: str):
+        '''Change the occupation state of building from 'None'
+        to being occupied by the player named playerName.'''
+        self.buildingStates[building] = playerName
 
 
 def main():

@@ -56,20 +56,17 @@ class GameState():
             self.players.append(Player(self.playerNames[i], agentsPerPlayer(numPlayers),
                                        shuffled_lord_cards[i]))
 
+        # This is not only a list of players, but 
+        # also represents the turn order. It will 
+        # be reordered each turn.
+        shuffle(self.players)
+
         # Deal quest cards to players
         for _ in range(2):
             for player in self.players:
                 player.getQuest(self.boardState.drawQuest())
 
         # TODO (later version): Deal intrigue cards to players
-
-        # Define the turn order 
-        shuffled_indices = list(range(1,numPlayers+1))
-        shuffle(shuffled_indices)
-        self.turnOrder = {shuffled_indices[i]: player for i,player in enumerate(self.players)}
-
-        # Set the current place in the turn order (1,...,numPlayers)
-        self.currentTurn = 1
 
         # TODO: Deal gold to players
 
@@ -100,20 +97,24 @@ class GameState():
     def takeTurn(self):
         '''Take a single turn in the turn order.'''
         # TODO: Implement 
-        currentPlayer = self.turnOrder[self.currentTurn]
+        currentPlayer = self.players[0]
         possibleMoves = [] # Fill this 
         move = currentPlayer.selectMove(possibleMoves) # Implement this
         # Execute this move. Maybe have a different function for 
         # selecting a building to play at vs other sub-selections
         # such as a quest to complete or an intrigue card to play?
-        self.turnOrder += 1 # TODO: Should be order = order + 1 mod nplayers?
+
+        # Reorder turn order to show that the player has moved.
+        self.players = self.players[1:] + currentPlayer
 
     def runGame(self):
         '''Umbrella function to run the game.'''
         while self.roundsLeft > 0:
-            # TODO: Make sure this accounts for multiple agents for player
-            while self.turnOrder <= self.numPlayers:
+            # Keep looping until a player runs out of agents
+            while self.players[0].agents >= 0:
                 self.takeTurn()
+
+            # TODO (later): reorder the players if one of them picked up the castle.
             self.newRound()
 
     def displayGame(self) -> None:
@@ -127,7 +128,4 @@ class GameState():
 
 def main():
     # Test gameState
-    gameState = GameState(numPlayers=2)
-    print(gameState.playerNames)
-    for i,player in gameState.turnOrder.items():
-        print(i,player.name, player.lordCard)
+    pass 
