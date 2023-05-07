@@ -1,5 +1,5 @@
 import numpy as np
-from game_info import RESOURCES, QUESTS, QUEST_TYPES, DEFAULT_BUILDINGS, Quest
+from game_info import RESOURCES, QUESTS, QUEST_TYPES, DEFAULT_BUILDINGS, Quest, NUM_POSSIBLE_BUILDINGS
 from player import Player
 from board import BoardState
 from game import GameState
@@ -55,28 +55,105 @@ def featurizePlayer(player: Player):
 
     return np.hstack([agentsVec, resourceVec] + questFeaturesList)
 
+# TODO (later): uncomment the below and complete
+# def featurizeBuilding(rewards: dict[str,int], ownerRewards: dict[str,int],
+#                       cost: int, state: int):
+#     '''
+#     Featurize one non-default building, either built already or not yet built.
 
-# Featurize game state
-# 
-# (Note for self later: instead of including players always in the same order and the turn order separately, 
-# possibly just include the other players in turn order in the game state inherently)
+#     Args: 
+#         rewards: the reward dictionary a player gets when placing 
+#             an agent at the building
+#         ownerRewards: the reward dictionary the building owner receives
+#             when a player places an agent there
+#         cost: the cost (in gold) for buying a building if it is unbuilt.
+#             Set to 'None' when it is already built.
+#         state: the occupation state of the building. None if unoccupied,
+#             otherwise a player's name.
+#     '''
+#     # Cost should be None when the building is already built
+#     if cost == None:
+#         # Featurize a built building
+#         pass 
+#     else:
+#         # Featurize an unbuilt building
+#         pass
+#
+#     # Hint: for reward dicts, use featurizeRewards
+#     # (check all buildings to see whether intrigue/quests/VP can be both
+#     #  player and owner rewards or not.)
+#
+#     # For builidngs that gather rewards over time, maybe
+#     # put unbuilt rewards as one rounds worth? or 1.5 or 1.25 or something?
+#     raise Exception("Not yet implemented.")
 
-def featurizeGameState(gameState: GameState):
-    boardState = gameState.boardState
-    playerNames = gameState.playerNames
-    # TODO: num rounds left? anything else?
-
+def featurizeBoardState(boardState: BoardState, playerNames: list[str]):
+    '''Featurize the state of the game board (but not the players).'''
     # Concatendated one-hot vectors for building occupations by player
-    buildingStateVec = []
+    buildingStateList = []
     for building in DEFAULT_BUILDINGS:
-        oneBuildingStateVec = np.array(playerNames) == boardState.buildingStates[building]
-        buildingStateVec.append(int())
-    # TODO: Chang ebuilding states to be one-hot vectors for occupations of each player instead of just 0/1 occupied/unoccupied
+        buildingStateVec = np.array(playerNames) == boardState.buildingStates[building]
+        buildingStateList.append(buildingStateVec.astype(int))
+    buildingFeatures = np.hstack(buildingStateList)
 
     # TODO (later): do the same but for all possible building spots
 
-    # TODO: put the four featurized cliffwatch quests here
-    # TODO: featurize players
+    availableQuestFeatures = np.hstack([featurizeQuest(quest) for quest in boardState.availableQuests])
+
+    # TODO (later): put featurized available buildings (i.e. to build) here
+
+    return np.append(buildingFeatures, availableQuestFeatures)
+
+def featurizeGameState(gameState: GameState):
+    '''Featurize the game state.'''
+    numRoundsLeftArr = np.array([gameState.roundsLeft,])
+    boardStateFeatures = featurizeBoardState(gameState.boardState, gameState.playerNames)
+
+    # Featurize players in turn order.
+    playerFeatures = [featurizePlayer(player) for player in gameState.players]
+    # TODO: Check if there is anything else that needs to be included as a feature.
+    
+    return np.hstack([numRoundsLeftArr, boardStateFeatures] + playerFeatures)
+
+def featurizeAction(gameState: GameState, action: str):
+    # The first four elements of the action feature vector 
+    # will correspond to how much the agent wants each 
+    # of the four quests available at Cliffwatch Inn. 
+    # Then, if the agent chooses the quest spot, we
+    # can also get the argmax of the first four q-values
+    # to choose a quest.
+    #      Actually, I'm not sure that this action-choosing
+    # framework is correct. Don't we need to compute the q-value
+    # for each action vector by feeding the vector into the q-network?
+    # It makes more sense to feed in a list of action vectors then
+    # instead of taking an argmax over elements. What elements will
+    # we have in a q-value vector to argmax over other than the outputs
+    # of the q-network on the action vectors we feed in?
+    numActions = 4
+
+    # One possible action per building space on the game board
+    numActions += NUM_POSSIBLE_BUILDINGS
+
+    # One possible action per possible active quest to complete.
+    numActions += MAX_QUESTS
+
+    # TODO (later): action choices for:
+    #   - choosing a building to build
+    #   - choosing an intrigue card from one's hand
+    #   - giving intrigue card rewards to another player 
+    #   - anything else?
+
+    actionFeatures = np.zeros(numActions)
+    if action in DEFAULT_BUILDINGS:
+        actionFeatures[4 + DEFAULT_BUILDINGS.index(action)] = 1
+    # elif action[:8] == "BUILDING": # One of the built buildings
+        # actionFeatures[4 + len(DEFAULT_BUILDINGS) + (INDEX OF BUILT BUILDING)] = 1
+    elif action[:8] == "COMPLETE": 
+        questIndex = int(action[8:])
+        actionFeatures[4 + NUM_POSSIBLE_BUILDINGS + questIndex] = 1
+    else:
+        raise ValueError("No other possible actions.")
+
 
 # Note for self later: Although one large CNN would not work, consider forcing 
 # the first layer to be the same for each quest block, for each player block, etc.

@@ -100,6 +100,9 @@ DEFAULT_BUILDINGS = [
     # "Waterdeep3", # Waterdeep Harbor, third slot (for playing Intrigue)
 ]
 
+# TODO (later): change the below to add all empty building slots
+NUM_POSSIBLE_BUILDINGS = len(DEFAULT_BUILDINGS)
+
 def main():
     # Verify correctness of quest attributes
     for quest in QUESTS:
