@@ -1,8 +1,8 @@
-
 import numpy as np
 from game_info import RESOURCES, QUESTS, QUEST_TYPES, DEFAULT_BUILDINGS, Quest
 from player import Player
-from game_state import GameState
+from board import BoardState
+from game import GameState
 
 def featurizeResources(resources: dict[str, int], includeVP: bool = False, includeQ: bool = False):
     '''Featurize a resource vector.'''
@@ -29,7 +29,6 @@ def featurizeQuest(quest: Quest):
 # The length of a quest feature vector (for use in zero-blocks)
 QUEST_FEATURE_LEN = len(featurizeQuest(QUESTS[0]))
 
-
 # Define the maximum number of quests a player can have.
 # This determines the number of quest feature vector blocks 
 # there is room for in the overall feature vectors.
@@ -43,7 +42,7 @@ def featurizePlayer(player: Player):
     # Vector of the player's resources
     resourceVec = featurizeResources(player.resources, includeVP=True)
 
-    # TODO (later): Add nintrigue cards and plot quests
+    # TODO (later): Add number of Intrigue cards and plot quests
 
     # Vector of the player's featurized active/completed quests
     questFeaturesList = []
@@ -63,12 +62,15 @@ def featurizePlayer(player: Player):
 # possibly just include the other players in turn order in the game state inherently)
 
 def featurizeGameState(gameState: GameState):
+    boardState = gameState.boardState
+    playerNames = gameState.playerNames
     # TODO: num rounds left? anything else?
 
-    # Boolean vector for building occupations
+    # Concatendated one-hot vectors for building occupations by player
     buildingStateVec = []
     for building in DEFAULT_BUILDINGS:
-        buildingStateVec.append(int(gameState.buildingStates[building]))
+        oneBuildingStateVec = np.array(playerNames) == boardState.buildingStates[building]
+        buildingStateVec.append(int())
     # TODO: Chang ebuilding states to be one-hot vectors for occupations of each player instead of just 0/1 occupied/unoccupied
 
     # TODO (later): do the same but for all possible building spots
@@ -78,6 +80,9 @@ def featurizeGameState(gameState: GameState):
 
 # Note for self later: Although one large CNN would not work, consider forcing 
 # the first layer to be the same for each quest block, for each player block, etc.
+
+# TODO: Write test functions which print the game state and actions 
+# in words to compare with the displayed game state before featurization
 
 def main():
     # Test the quest featurization

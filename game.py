@@ -1,14 +1,14 @@
 from random import shuffle
 from game_info import Quest, LORD_CARDS, agentsPerPlayer
 from player import Player
-from game_state import GameState
+from board import BoardState
 
 # Class to control the flow of the game, focused on turn progression and move 
 # options. Broadly, this class handles anything involving the game state and
 # the players, while those other classes handle either only the game state
 # itself or only the players themselves (to the extent possible).
 
-class GameControl():
+class GameState():
     '''
     Class to control the flow of the game, 
     focused on turn progression and move 
@@ -27,8 +27,8 @@ class GameControl():
         # Initialize the remaining number of rounds
         self.roundsLeft = numRounds
 
-        # Initialize the GameState
-        self.gameState = GameState()
+        # Initialize the BoardState
+        self.boardState = BoardState()
 
         # Check that we have a valid number of players
         assert numPlayers >= 2 and numPlayers <= 5
@@ -59,7 +59,7 @@ class GameControl():
         # Deal quest cards to players
         for _ in range(2):
             for player in self.players:
-                player.getQuest(self.gameState.drawQuest())
+                player.getQuest(self.boardState.drawQuest())
 
         # TODO (later version): Deal intrigue cards to players
 
@@ -84,7 +84,7 @@ class GameControl():
         # TODO (later version): put VPs on buildings at bulider's hall
 
         # Reset all buildings
-        self.gameState.clearBuildings()
+        self.boardState.clearBuildings()
 
         # TODO (later version): put new resources on buildings that need them
 
@@ -126,8 +126,8 @@ class GameControl():
         
 
 def main():
-    # Test gameControl
-    gameControl = GameControl(numPlayers=2)
-    print(gameControl.playerNames)
-    for i,player in gameControl.turnOrder.items():
+    # Test gameState
+    gameState = GameState(numPlayers=2)
+    print(gameState.playerNames)
+    for i,player in gameState.turnOrder.items():
         print(i,player.name, player.lordCard)

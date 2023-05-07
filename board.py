@@ -1,10 +1,12 @@
 from random import shuffle
 from game_info import DEFAULT_BUILDINGS, QUESTS, Quest
 
-class GameState():
+class BoardState():
+    '''Class to represent the state of the board itself 
+    along with cards, but not players.'''
     def __init__(self) -> None:
         '''
-        Initialize the game state. Creates the quest stack
+        Initialize the board state. Creates the quest stack
         and initializes all buildings states.
         '''
         # Create the quest stack
@@ -44,8 +46,8 @@ class GameState():
 
 def main():
     # Test the quest stack
-    gameState = GameState()
+    boardState = BoardState()
     for i in range(2):
-        print("Drew quest:", gameState.drawQuest())
-        gameState.printQuestStack()
+        print("Drew quest:", boardState.drawQuest())
+        boardState.printQuestStack()
         print()
